@@ -120,7 +120,7 @@ fn report(path: &PathBuf, metadata: &FileMetadata, validation: &FormatValidation
         path.file_name().and_then(|n| n.to_str()).unwrap_or("..")
     );
     println!(
-        " - {} ({}); {} ({}); {} ({})",
+        " - {} {}; {} {}; {} {}",
         metadata.audio.codec,
         report_status(validation.audio_okay),
         metadata.video.codec,
