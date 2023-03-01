@@ -1,0 +1,15 @@
+default_target: "sony"
+targets: [
+    name: "sony"
+    format_spec:
+        Reject:
+            audio: ["eac3", "vorbis", "opus"]
+            video: ["vp9"]
+            container: [],
+    name: "roku"
+    format_spec:
+        Allow:
+            audio: ["aac", "ac3", "eac3", "mp3", "flac", "dts"]
+            video: ["h264", "hevc"]
+            container: ["matroska", "mov"]
+]
