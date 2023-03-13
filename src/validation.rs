@@ -26,18 +26,18 @@ pub(crate) fn validate_format(
     }
 }
 
-fn allow(format: &Vec<String>, value: &String) -> bool {
+fn allow(format: &[String], value: &String) -> bool {
     format.contains(value)
 }
 
-fn deny(format: &Vec<String>, value: &String) -> bool {
+fn deny(format: &[String], value: &String) -> bool {
     !allow(format, value)
 }
 
 fn validate_format_selector(
     file: &metadata::FileMetadata,
     formats: &Formats,
-    selector: &dyn Fn(&Vec<String>, &String) -> bool,
+    selector: &dyn Fn(&[String], &String) -> bool,
 ) -> FormatValidation {
     let audio_okay = selector(&formats.audio, &file.audio.codec);
     let video_okay = selector(&formats.video, &file.video.codec);

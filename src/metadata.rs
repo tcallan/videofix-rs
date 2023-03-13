@@ -1,7 +1,5 @@
 use anyhow::anyhow;
-use ffprobe;
-use ffprobe::FfProbe;
-use ffprobe::Stream;
+use ffprobe::{FfProbe, Stream};
 use itertools::Itertools;
 use log::debug;
 use std::path::Path;

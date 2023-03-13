@@ -72,14 +72,12 @@ fn main() -> anyhow::Result<()> {
         let paths = fs::read_dir(check_path)?;
         let extensions = VALID_EXTENSIONS.map(OsStr::new);
 
-        for p in paths {
-            if let Ok(entry) = p {
-                let path = entry.path();
-                if path.is_file() {
-                    if let Some(extension) = path.extension() {
-                        if extensions.contains(&extension) {
-                            check_paths.push(path);
-                        }
+        for entry in paths.flatten() {
+            let path = entry.path();
+            if path.is_file() {
+                if let Some(extension) = path.extension() {
+                    if extensions.contains(&extension) {
+                        check_paths.push(path);
                     }
                 }
             }
@@ -120,12 +118,13 @@ fn handle_file(path: PathBuf, target: &Target, should_fix: bool) -> Result<(), a
 
     report(&path, &metadata, &validation);
 
-    Ok(if !validation.is_valid() && should_fix {
+    if !validation.is_valid() && should_fix {
         reencode(&path, &validation)?;
-    })
+    };
+    Ok(())
 }
 
-fn report(path: &PathBuf, metadata: &FileMetadata, validation: &FormatValidation) {
+fn report(path: &Path, metadata: &FileMetadata, validation: &FormatValidation) {
     println!();
     println!(
         "{}",
