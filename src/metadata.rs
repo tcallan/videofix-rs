@@ -3,6 +3,7 @@ use ffprobe;
 use ffprobe::FfProbe;
 use ffprobe::Stream;
 use itertools::Itertools;
+use log::debug;
 use std::path::Path;
 
 #[derive(Debug)]
@@ -60,6 +61,8 @@ fn get_container(details: &FfProbe) -> String {
 fn get_video_metadata(details: &FfProbe) -> anyhow::Result<VideoMetadata> {
     let video_stream = find_stream_by_type(details, "video")?;
 
+    debug!("video {:#?}", video_stream);
+
     Ok(VideoMetadata {
         index: video_stream.index,
         codec: get_codec(video_stream)?,
@@ -68,6 +71,8 @@ fn get_video_metadata(details: &FfProbe) -> anyhow::Result<VideoMetadata> {
 
 fn get_audio_metadata(details: &FfProbe) -> anyhow::Result<AudioMetadata> {
     let audio_stream = find_stream_by_type(details, "audio")?;
+
+    debug!("audio {:#?}", audio_stream);
 
     Ok(AudioMetadata {
         index: audio_stream.index,

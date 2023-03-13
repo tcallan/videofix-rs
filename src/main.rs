@@ -9,6 +9,8 @@ use std::{
 use anyhow::{anyhow, bail};
 use clap::Parser;
 use directories::ProjectDirs;
+use env_logger::Builder;
+use log::LevelFilter;
 use metadata::FileMetadata;
 use serde::{Deserialize, Serialize};
 use validation::FormatValidation;
@@ -26,12 +28,22 @@ struct Args {
     #[arg(long)]
     target: Option<String>,
     path: Option<PathBuf>,
+    #[arg(long)]
+    debug: bool,
 }
 
 fn main() -> anyhow::Result<()> {
     let config = load_config()?;
 
     let args = Args::parse();
+
+    Builder::new()
+        .filter_level(if args.debug {
+            LevelFilter::Debug
+        } else {
+            LevelFilter::Warn
+        })
+        .init();
 
     let check_path = args
         .path
