@@ -11,5 +11,5 @@ clap = { version = "4.1.8", features = ["derive"] }
 directories = "4.0.1"
 ffprobe = "0.3.3"
 itertools = "0.10.5"
-serde = "1.0.152"
+serde = "1.0.155"
 serde_gura = "0.1.5"
