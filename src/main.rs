@@ -6,7 +6,7 @@ use std::{
     process::Command,
 };
 
-use anyhow::{anyhow, bail};
+use anyhow::{anyhow, bail, Context};
 use clap::Parser;
 use directories::ProjectDirs;
 use env_logger::Builder;
@@ -30,11 +30,11 @@ struct Args {
     path: Option<PathBuf>,
     #[arg(long)]
     debug: bool,
+    #[arg(long)]
+    config: Option<PathBuf>,
 }
 
 fn main() -> anyhow::Result<()> {
-    let config = load_config()?;
-
     let args = Args::parse();
 
     Builder::new()
@@ -44,6 +44,8 @@ fn main() -> anyhow::Result<()> {
             LevelFilter::Warn
         })
         .init();
+
+    let config = load_config(args.config)?;
 
     let check_path = args
         .path
@@ -98,21 +100,22 @@ fn main() -> anyhow::Result<()> {
     Ok(())
 }
 
-fn load_config() -> Result<Config, anyhow::Error> {
+fn load_config(config_override: Option<PathBuf>) -> anyhow::Result<Config> {
     // TODO: could create a default placeholder config if one doesn't exist and prompt to edit
     let paths = ProjectDirs::from("", "", "videofix")
         .ok_or_else(|| anyhow!("could not determine program config directory"))?;
 
-    let config_file = paths.config_dir().join("config.gura");
+    let config_file = config_override.unwrap_or_else(|| paths.config_dir().join("config.gura"));
 
     let gura = fs::read_to_string(&config_file)
-        .map_err(|err| anyhow!("Could not load {}: {}", config_file.display(), err))?;
+        .with_context(|| format!("could not load {}", config_file.display()))?;
 
-    let config: Config = serde_gura::from_str(&gura)?;
+    let config: Config =
+        serde_gura::from_str(&gura).with_context(|| "could not deserialize config")?;
     Ok(config)
 }
 
-fn handle_file(path: PathBuf, target: &Target, should_fix: bool) -> Result<(), anyhow::Error> {
+fn handle_file(path: PathBuf, target: &Target, should_fix: bool) -> anyhow::Result<()> {
     let metadata = metadata::get_metadata(&path)?;
     let validation = validation::validate_format(&metadata, &target.format_spec);
 
@@ -156,12 +159,10 @@ fn reencode(in_path: impl AsRef<Path>, val: &FormatValidation) -> anyhow::Result
     let out_path = in_path.as_ref().with_extension("fixed.mkv");
 
     // TODO: could let ffmepg prompt for this instead
-    // TODO: could prompt the user to overwrite or not (but would need to tell ffmpeg)
     if out_path.exists() {
         bail!("Fix target {} already exists", out_path.display());
     }
 
-    // TODO: adjust ffmpeg output; this is close but ideally would include the stream mappings
     let mut ffmpeg = Command::new("ffmpeg")
         .arg("-loglevel")
         .arg("warning")
