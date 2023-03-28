@@ -124,7 +124,7 @@ fn handle_file(path: PathBuf, target: &Target, should_fix: bool) -> anyhow::Resu
     report(&path, &metadata, &validation);
 
     if !validation.is_valid() && should_fix {
-        reencode(&path, &validation)?;
+        reencode(&path, &validation, &target.default)?;
     };
     Ok(())
 }
@@ -155,9 +155,13 @@ fn report_status(is_okay: bool) -> &'static str {
     }
 }
 
-fn reencode(in_path: impl AsRef<Path>, val: &FormatValidation) -> anyhow::Result<()> {
-    let vcodec = if val.video_okay { "copy" } else { "h264" };
-    let acodec = if val.audio_okay { "copy" } else { "aac" };
+fn reencode(
+    in_path: impl AsRef<Path>,
+    val: &FormatValidation,
+    default: &DefaultFormat,
+) -> anyhow::Result<()> {
+    let vcodec = if val.video_okay { "copy" } else { &default.video };
+    let acodec = if val.audio_okay { "copy" } else { &default.audio };
 
     let out_path = in_path.as_ref().with_extension("fixed.mkv");
 
@@ -205,6 +209,7 @@ struct Config {
 struct Target {
     name: String,
     format_spec: FormatSpec,
+    default: DefaultFormat,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -218,4 +223,10 @@ struct FormatSpec {
 enum Formats {
     Allow(Vec<String>),
     Reject(Vec<String>),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DefaultFormat {
+    audio: String,
+    video: String,
 }

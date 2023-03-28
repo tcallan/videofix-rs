@@ -7,7 +7,10 @@ targets: [
         video:
             Reject: ["vp9"]
         container:
-            Reject: [],
+            Reject: []
+    default:
+        audio: "aac"
+        video: "h264",
     name: "roku"
     format_spec:
         audio:
@@ -16,4 +19,7 @@ targets: [
             Allow: ["h264", "hevc"]
         container:
             Allow: ["matroska", "mov"]
+    default:
+        audio: "aac"
+        video: "h264",
 ]
