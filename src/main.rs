@@ -2,6 +2,7 @@ use std::{
     env,
     ffi::OsStr,
     fs,
+    io::stdin,
     path::{Path, PathBuf},
     process::Command,
 };
@@ -13,6 +14,7 @@ use env_logger::Builder;
 use log::LevelFilter;
 use metadata::FileMetadata;
 use serde::{Deserialize, Serialize};
+use terminal_size::{terminal_size, Width};
 use validation::FormatValidation;
 
 mod metadata;
@@ -163,6 +165,8 @@ fn reencode(in_path: impl AsRef<Path>, val: &FormatValidation) -> anyhow::Result
         bail!("Fix target {} already exists", out_path.display());
     }
 
+    guard_terminal_size(100);
+
     let mut ffmpeg = Command::new("ffmpeg")
         .arg("-loglevel")
         .arg("warning")
@@ -179,6 +183,15 @@ fn reencode(in_path: impl AsRef<Path>, val: &FormatValidation) -> anyhow::Result
     ffmpeg.wait()?;
 
     Ok(())
+}
+
+fn guard_terminal_size(min_width: u16) {
+    if let Some((Width(w), _)) = terminal_size() {
+        if w < min_width {
+            println!("Terminal width is below minimum size for nice ffmpeg output. Hit enter to continue.");
+            let _ = stdin().read_line(&mut String::new());
+        }
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
