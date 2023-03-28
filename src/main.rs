@@ -208,14 +208,14 @@ struct Target {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-enum FormatSpec {
-    Allow(Formats),
-    Reject(Formats),
+struct FormatSpec {
+    audio: Formats,
+    video: Formats,
+    container: Formats,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
-struct Formats {
-    audio: Vec<String>,
-    video: Vec<String>,
-    container: Vec<String>,
+enum Formats {
+    Allow(Vec<String>),
+    Reject(Vec<String>),
 }
