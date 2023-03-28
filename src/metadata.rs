@@ -18,6 +18,7 @@ pub(crate) struct VideoMetadata {
     #[allow(unused)] // TODO: change to expect when available; for future functionality
     pub(crate) index: i64,
     pub(crate) codec: String,
+    pub(crate) pix_fmt: String,
 }
 
 #[derive(Debug)]
@@ -30,8 +31,10 @@ pub(crate) struct AudioMetadata {
 }
 
 pub(crate) fn get_metadata(path: impl AsRef<Path>) -> anyhow::Result<FileMetadata> {
+    debug!("calling ffprobe");
     let details = ffprobe::ffprobe(&path)
         .map_err(|err| anyhow!("ffprobe error in {}: {}", path.as_ref().display(), err))?;
+    debug!("ffprobe {:#?}", &details);
     let duration = details
         .format
         .duration
@@ -64,6 +67,7 @@ fn get_video_metadata(details: &FfProbe) -> anyhow::Result<VideoMetadata> {
     Ok(VideoMetadata {
         index: video_stream.index,
         codec: get_codec(video_stream)?,
+        pix_fmt: get_pix_fmt(video_stream)?,
     })
 }
 
@@ -114,4 +118,12 @@ fn get_codec(stream: &Stream) -> anyhow::Result<String> {
         .as_ref()
         .map(|s| s.to_string())
         .ok_or_else(|| anyhow!("no codec found for stream {}", stream.index))
+}
+
+fn get_pix_fmt(stream: &Stream) -> anyhow::Result<String> {
+    stream
+        .pix_fmt
+        .as_ref()
+        .map(|s| s.to_string())
+        .ok_or_else(|| anyhow!("no pix_fmt found for stream {}", stream.index))
 }

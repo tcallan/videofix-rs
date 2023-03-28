@@ -136,13 +136,14 @@ fn report(path: &Path, metadata: &FileMetadata, validation: &FormatValidation) {
         path.file_name().and_then(|n| n.to_str()).unwrap_or("..")
     );
     println!(
-        " - {} {}; {} {}; {} {}",
+        " - {} {}; {} {}; {} {}; {}",
         metadata.audio.codec,
         report_status(validation.audio_okay),
         metadata.video.codec,
         report_status(validation.video_okay),
         metadata.container,
-        report_status(validation.container_okay)
+        report_status(validation.container_okay),
+        metadata.video.pix_fmt
     );
 }
 
@@ -162,7 +163,7 @@ fn reencode(in_path: impl AsRef<Path>, val: &FormatValidation) -> anyhow::Result
 
     // TODO: could let ffmepg prompt for this instead
     if out_path.exists() {
-        bail!("Fix target {} already exists", out_path.display());
+        bail!("fix target {} already exists", out_path.display());
     }
 
     guard_terminal_size(100);

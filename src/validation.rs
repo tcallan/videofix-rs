@@ -68,6 +68,7 @@ mod test {
             video: VideoMetadata {
                 index: 0,
                 codec: vcodec.to_string(),
+                pix_fmt: "".to_string(),
             },
             audio: AudioMetadata {
                 index: 1,
