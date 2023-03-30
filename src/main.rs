@@ -11,7 +11,7 @@ use anyhow::{anyhow, bail, Context};
 use clap::Parser;
 use directories::ProjectDirs;
 use env_logger::Builder;
-use log::{LevelFilter, debug};
+use log::{debug, LevelFilter};
 use metadata::FileMetadata;
 use serde::{Deserialize, Serialize};
 use terminal_size::{terminal_size, Width};
@@ -56,36 +56,15 @@ fn main() -> anyhow::Result<()> {
 
     let should_fix = args.fix;
 
-    let requested_target = args.target.unwrap_or(config.default_target);
-    let target = config
-        .targets
-        .iter()
-        .find(|t| t.name == requested_target)
-        .ok_or_else(|| {
-            anyhow!(
-                "could not find requested target \"{}\" in config",
-                requested_target
-            )
-        })?;
+    let requested_target = args.target.as_ref().unwrap_or(&config.default_target);
+    let target = config.find_target(requested_target)?;
 
     let mut check_paths: Vec<PathBuf> = Vec::new();
 
     if check_path.is_file() {
         check_paths.push(check_path);
     } else {
-        let paths = fs::read_dir(check_path)?;
-        let extensions = VALID_EXTENSIONS.map(OsStr::new);
-
-        for entry in paths.flatten() {
-            let path = entry.path();
-            if path.is_file() {
-                if let Some(extension) = path.extension() {
-                    if extensions.contains(&extension) {
-                        check_paths.push(path);
-                    }
-                }
-            }
-        }
+        get_paths(&check_path, &mut check_paths)?;
     }
 
     println!(
@@ -98,6 +77,22 @@ fn main() -> anyhow::Result<()> {
         handle_file(path, target, should_fix)?;
     }
 
+    Ok(())
+}
+
+fn get_paths(check_path: &Path, check_paths: &mut Vec<PathBuf>) -> anyhow::Result<()> {
+    let paths = fs::read_dir(check_path)?;
+    let extensions = VALID_EXTENSIONS.map(OsStr::new);
+    for entry in paths.flatten() {
+        let path = entry.path();
+        if path.is_file() {
+            if let Some(extension) = path.extension() {
+                if extensions.contains(&extension) {
+                    check_paths.push(path);
+                }
+            }
+        }
+    }
     Ok(())
 }
 
@@ -196,7 +191,7 @@ fn reencode(
     cmd.arg("-c:a").arg(acodec).arg(out_path);
 
     debug!("{:?}", cmd);
-    
+
     let mut ffmpeg = cmd.spawn()?;
 
     ffmpeg.wait()?;
@@ -217,6 +212,20 @@ fn guard_terminal_size(min_width: u16) {
 struct Config {
     default_target: String,
     targets: Vec<Target>,
+}
+
+impl Config {
+    fn find_target(&self, requested_target: &str) -> anyhow::Result<&Target> {
+        self.targets
+            .iter()
+            .find(|t| t.name == requested_target)
+            .ok_or_else(|| {
+                anyhow!(
+                    "could not find requested target \"{}\" in config",
+                    requested_target
+                )
+            })
+    }
 }
 
 #[derive(Debug, Deserialize, Serialize)]
