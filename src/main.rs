@@ -11,7 +11,7 @@ use anyhow::{anyhow, bail, Context};
 use clap::Parser;
 use directories::ProjectDirs;
 use env_logger::Builder;
-use log::LevelFilter;
+use log::{LevelFilter, debug};
 use metadata::FileMetadata;
 use serde::{Deserialize, Serialize};
 use terminal_size::{terminal_size, Width};
@@ -193,7 +193,11 @@ fn reencode(
         cmd.arg("-pix_fmt").arg(&default.pix_fmt);
     }
 
-    let mut ffmpeg = cmd.arg("-c:a").arg(acodec).arg(out_path).spawn()?;
+    cmd.arg("-c:a").arg(acodec).arg(out_path);
+
+    debug!("{:?}", cmd);
+    
+    let mut ffmpeg = cmd.spawn()?;
 
     ffmpeg.wait()?;
 
