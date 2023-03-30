@@ -5,12 +5,15 @@ targets: [
         audio:
             Reject: ["eac3", "vorbis", "opus"]
         video:
-            Reject: ["vp9"]
+            Reject: ["vp9", "hevc"]
         container:
             Reject: []
+        pix_fmt:
+            Reject: ["yuv420p10le"]
     default:
         audio: "aac"
-        video: "h264",
+        video: "h264"
+        pix_fmt: "yuv420p",
     name: "roku"
     format_spec:
         audio:
@@ -19,7 +22,10 @@ targets: [
             Allow: ["h264", "hevc"]
         container:
             Allow: ["matroska", "mov"]
+        pix_fmt:
+            Reject: []
     default:
         audio: "aac"
-        video: "h264",
+        video: "h264"
+        pix_fmt: "yuv420p",
 ]

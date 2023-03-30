@@ -8,11 +8,12 @@ pub(crate) struct FormatValidation {
     pub(crate) audio_okay: bool,
     pub(crate) video_okay: bool,
     pub(crate) container_okay: bool,
+    pub(crate) pix_fmt_okay: bool,
 }
 
 impl FormatValidation {
     pub(crate) fn is_valid(&self) -> bool {
-        self.audio_okay && self.video_okay && self.container_okay
+        self.audio_okay && self.video_okay && self.container_okay && self.pix_fmt_okay
     }
 }
 
@@ -23,11 +24,13 @@ pub(crate) fn validate_format(
     let audio_okay = validate_format_component(&format.audio, &file.audio.codec);
     let video_okay = validate_format_component(&format.video, &file.video.codec);
     let container_okay = validate_format_component(&format.container, &file.container);
+    let pix_fmt_okay = validate_format_component(&format.pix_fmt, &file.video.pix_fmt);
 
     FormatValidation {
         audio_okay,
         video_okay,
         container_okay,
+        pix_fmt_okay,
     }
 }
 
@@ -74,13 +77,27 @@ mod test {
         }
     }
 
+    fn mk_spec_allow(audio: Vec<&str>, video: Vec<&str>, container: Vec<&str>) -> FormatSpec {
+        FormatSpec {
+            audio: Formats::Allow(str_vec(audio)),
+            video: Formats::Allow(str_vec(video)),
+            container: Formats::Allow(str_vec(container)),
+            pix_fmt: Formats::Reject(vec![]),
+        }
+    }
+
+    fn mk_spec_reject(audio: Vec<&str>, video: Vec<&str>, container: Vec<&str>) -> FormatSpec {
+        FormatSpec {
+            audio: Formats::Reject(str_vec(audio)),
+            video: Formats::Reject(str_vec(video)),
+            container: Formats::Reject(str_vec(container)),
+            pix_fmt: Formats::Reject(vec![]),
+        }
+    }
+
     #[test]
     fn format_validation_allow_valid() {
-        let format = FormatSpec {
-            audio: Formats::Allow(str_vec(vec!["mp3", "wav"])),
-            video: Formats::Allow(str_vec(vec!["h264", "h265"])),
-            container: Formats::Allow(str_vec(vec!["avi", "mp4"])),
-        };
+        let format = mk_spec_allow(vec!["mp3", "wav"], vec!["h264", "h265"], vec!["avi", "mp4"]);
         let metadata = mk_metadata("mp4", "h265", "mp3");
 
         let validation = validate_format(&metadata, &format);
@@ -89,11 +106,7 @@ mod test {
 
     #[test]
     fn format_validation_allow_invalid_container() {
-        let format = FormatSpec {
-            audio: Formats::Allow(str_vec(vec!["mp3", "wav"])),
-            video: Formats::Allow(str_vec(vec!["h264", "h265"])),
-            container: Formats::Allow(str_vec(vec!["avi", "mp4"])),
-        };
+        let format = mk_spec_allow(vec!["mp3", "wav"], vec!["h264", "h265"], vec!["avi", "mp4"]);
         let metadata = mk_metadata("mkv", "h265", "mp3");
 
         let validation = validate_format(&metadata, &format);
@@ -102,11 +115,7 @@ mod test {
 
     #[test]
     fn format_validation_allow_invalid_video() {
-        let format = FormatSpec {
-            audio: Formats::Allow(str_vec(vec!["mp3", "wav"])),
-            video: Formats::Allow(str_vec(vec!["h264", "h265"])),
-            container: Formats::Allow(str_vec(vec!["avi", "mp4"])),
-        };
+        let format = mk_spec_allow(vec!["mp3", "wav"], vec!["h264", "h265"], vec!["avi", "mp4"]);
         let metadata = mk_metadata("mp4", "avi", "mp3");
 
         let validation = validate_format(&metadata, &format);
@@ -115,11 +124,7 @@ mod test {
 
     #[test]
     fn format_validation_allow_invalid_audio() {
-        let format = FormatSpec {
-            audio: Formats::Allow(str_vec(vec!["mp3", "wav"])),
-            video: Formats::Allow(str_vec(vec!["h264", "h265"])),
-            container: Formats::Allow(str_vec(vec!["avi", "mp4"])),
-        };
+        let format = mk_spec_allow(vec!["mp3", "wav"], vec!["h264", "h265"], vec!["avi", "mp4"]);
         let metadata = mk_metadata("mp4", "h265", "flac");
 
         let validation = validate_format(&metadata, &format);
@@ -128,11 +133,7 @@ mod test {
 
     #[test]
     fn format_validation_reject_valid() {
-        let format = FormatSpec {
-            audio: Formats::Reject(str_vec(vec!["mp3", "wav"])),
-            video: Formats::Reject(str_vec(vec!["h264", "h265"])),
-            container: Formats::Reject(str_vec(vec!["avi", "mp4"])),
-        };
+        let format = mk_spec_reject(vec!["mp3", "wav"], vec!["h264", "h265"], vec!["avi", "mp4"]);
         let metadata = mk_metadata("mkv", "mp4", "aac");
 
         let validation = validate_format(&metadata, &format);
@@ -141,11 +142,7 @@ mod test {
 
     #[test]
     fn format_validation_reject_invalid_container() {
-        let format = FormatSpec {
-            audio: Formats::Reject(str_vec(vec!["mp3", "wav"])),
-            video: Formats::Reject(str_vec(vec!["h264", "h265"])),
-            container: Formats::Reject(str_vec(vec!["avi", "mp4"])),
-        };
+        let format = mk_spec_reject(vec!["mp3", "wav"], vec!["h264", "h265"], vec!["avi", "mp4"]);
         let metadata = mk_metadata("avi", "mp4", "aac");
 
         let validation = validate_format(&metadata, &format);
@@ -154,11 +151,7 @@ mod test {
 
     #[test]
     fn format_validation_reject_invalid_video() {
-        let format = FormatSpec {
-            audio: Formats::Reject(str_vec(vec!["mp3", "wav"])),
-            video: Formats::Reject(str_vec(vec!["h264", "h265"])),
-            container: Formats::Reject(str_vec(vec!["avi", "mp4"])),
-        };
+        let format = mk_spec_reject(vec!["mp3", "wav"], vec!["h264", "h265"], vec!["avi", "mp4"]);
         let metadata = mk_metadata("mkv", "h264", "aac");
 
         let validation = validate_format(&metadata, &format);
@@ -167,11 +160,7 @@ mod test {
 
     #[test]
     fn format_validation_reject_invalid_audio() {
-        let format = FormatSpec {
-            audio: Formats::Reject(str_vec(vec!["mp3", "wav"])),
-            video: Formats::Reject(str_vec(vec!["h264", "h265"])),
-            container: Formats::Reject(str_vec(vec!["avi", "mp4"])),
-        };
+        let format = mk_spec_reject(vec!["mp3", "wav"], vec!["h264", "h265"], vec!["avi", "mp4"]);
         let metadata = mk_metadata("mkv", "mp4", "mp3");
 
         let validation = validate_format(&metadata, &format);

@@ -94,7 +94,6 @@ fn main() -> anyhow::Result<()> {
         requested_target
     );
     for path in check_paths {
-        // TODO: split report and reencode into two steps
         // TODO: prompt before reencoding?
         handle_file(path, target, should_fix)?;
     }
@@ -136,14 +135,15 @@ fn report(path: &Path, metadata: &FileMetadata, validation: &FormatValidation) {
         path.file_name().and_then(|n| n.to_str()).unwrap_or("..")
     );
     println!(
-        " - {} {}; {} {}; {} {}; {}",
+        " - {} {}; {} {}; {} {}; {} {}",
         metadata.audio.codec,
         report_status(validation.audio_okay),
         metadata.video.codec,
         report_status(validation.video_okay),
         metadata.container,
         report_status(validation.container_okay),
-        metadata.video.pix_fmt
+        metadata.video.pix_fmt,
+        report_status(validation.pix_fmt_okay),
     );
 }
 
@@ -160,8 +160,16 @@ fn reencode(
     val: &FormatValidation,
     default: &DefaultFormat,
 ) -> anyhow::Result<()> {
-    let vcodec = if val.video_okay { "copy" } else { &default.video };
-    let acodec = if val.audio_okay { "copy" } else { &default.audio };
+    let vcodec = if val.video_okay {
+        "copy"
+    } else {
+        &default.video
+    };
+    let acodec = if val.audio_okay {
+        "copy"
+    } else {
+        &default.audio
+    };
 
     let out_path = in_path.as_ref().with_extension("fixed.mkv");
 
@@ -172,18 +180,20 @@ fn reencode(
 
     guard_terminal_size(100);
 
-    let mut ffmpeg = Command::new("ffmpeg")
-        .arg("-loglevel")
+    let mut cmd = Command::new("ffmpeg");
+    cmd.arg("-loglevel")
         .arg("warning")
         .arg("-stats")
         .arg("-i")
         .arg(in_path.as_ref())
-        .arg("-vcodec")
-        .arg(vcodec)
-        .arg("-acodec")
-        .arg(acodec)
-        .arg(out_path)
-        .spawn()?;
+        .arg("-c:v")
+        .arg(vcodec);
+
+    if !val.pix_fmt_okay {
+        cmd.arg("-pix_fmt").arg(&default.pix_fmt);
+    }
+
+    let mut ffmpeg = cmd.arg("-c:a").arg(acodec).arg(out_path).spawn()?;
 
     ffmpeg.wait()?;
 
@@ -217,6 +227,7 @@ struct FormatSpec {
     audio: Formats,
     video: Formats,
     container: Formats,
+    pix_fmt: Formats,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -229,4 +240,5 @@ enum Formats {
 struct DefaultFormat {
     audio: String,
     video: String,
+    pix_fmt: String,
 }
