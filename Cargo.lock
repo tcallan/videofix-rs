@@ -245,7 +245,7 @@ checksum = "ccb4f6207872bb9f468d56aa91b6f85652c952a35044007e277f9ffa56f7d6db"
 dependencies = [
  "float-pretty-print",
  "indexmap",
- "itertools",
+ "itertools 0.10.5",
  "lazy_static",
  "regex",
  "unicode-segmentation",
@@ -312,6 +312,15 @@ name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b0fd2260e829bddf4cb6ea802289de2f86d6a7a690192fbe91b3f46e0f2c8473"
+dependencies = [
+ "either",
+]
+
+[[package]]
+name = "itertools"
+version = "0.11.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
 dependencies = [
  "either",
 ]
@@ -595,7 +604,7 @@ dependencies = [
  "directories",
  "env_logger",
  "ffprobe",
- "itertools",
+ "itertools 0.11.0",
  "log",
  "serde",
  "serde_gura",
