@@ -475,9 +475,9 @@ dependencies = [
 
 [[package]]
 name = "serde_gura"
-version = "0.1.5"
+version = "0.1.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad71f8508b438990b2e20a89bb41e1e00dcbbc8fd184c2423decc2a6a627b034"
+checksum = "38521faa6937b21b76c8c8958e57c72934733581d238f1bc14a9c0fe5405d69d"
 dependencies = [
  "gura",
  "indexmap",
