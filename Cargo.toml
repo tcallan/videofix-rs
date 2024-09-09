@@ -6,13 +6,13 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.86"
-clap = { version = "4.5.16", features = ["derive"] }
+anyhow = "1.0.87"
+clap = { version = "4.5.17", features = ["derive"] }
 directories = "5.0.1"
 env_logger = "0.10.2"
 ffprobe = "0.4.0"
 itertools = "0.13.0"
 log = "0.4.22"
-serde = "1.0.209"
+serde = "1.0.210"
 serde_gura = "0.1.8"
 terminal_size = "0.3.0"
