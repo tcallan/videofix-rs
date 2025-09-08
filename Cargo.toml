@@ -7,12 +7,12 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0.99"
-clap = { version = "4.5.45", features = ["derive"] }
+clap = { version = "4.5.47", features = ["derive"] }
 directories = "6.0.0"
 env_logger = "0.11.6"
 ffprobe = "0.4.0"
 itertools = "0.14.0"
-log = "0.4.27"
+log = "0.4.28"
 serde = "1.0.219"
 serde_gura = "0.2.0"
 terminal_size = "0.4.3"
