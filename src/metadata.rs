@@ -34,7 +34,7 @@ pub(crate) fn get_metadata(path: impl AsRef<Path>) -> anyhow::Result<FileMetadat
     debug!("calling ffprobe");
     let details = ffprobe::ffprobe(&path)
         .map_err(|err| anyhow!("ffprobe error in {}: {}", path.as_ref().display(), err))?;
-    debug!("ffprobe {:#?}", &details);
+    debug!("ffprobe {:#?}", details);
     let duration = details
         .format
         .duration

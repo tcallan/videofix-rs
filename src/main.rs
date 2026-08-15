@@ -188,7 +188,11 @@ fn reencode(
         cmd.arg("-pix_fmt").arg(&default.pix_fmt);
     }
 
-    cmd.arg("-c:a").arg(acodec).arg(out_path);
+    cmd.arg("-c:a")
+        .arg(acodec)
+        .arg("-max_interleave_delta")
+        .arg("0")
+        .arg(out_path);
 
     debug!("{:?}", cmd);
 
